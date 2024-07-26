@@ -4,8 +4,8 @@ from model import ImageProcessor
 app = Flask(__name__)
 processor = ImageProcessor()
 
-@app.route("/process_image", methods=["POST"])
-def process_image():
+@app.route("/process_pdf", methods=["POST"])
+def process_pdf():
     data = request.get_json()
     if not data or "file_path" not in data:
         return jsonify({"error": "No file path provided"}), 400

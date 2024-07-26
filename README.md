@@ -1,13 +1,13 @@
-# Image Processor Project
+# PDF Processor Project
 
 ## Overview
 
-This project consists of two primary files: `model.py` and `main.py`. The goal of the project is to process images of assembly instruction manuals and convert them into a structured JSON format using the OpenAI API. The project includes a Flask web application that provides an API endpoint to process these images.
+This project consists of two primary files: `model.py` and `main.py`. The goal of the project is to process PDF files of assembly instruction manuals and convert them into a structured JSON format using the OpenAI API. The project includes a Flask web application that provides an API endpoint to process these PDFs.
 
 ## Project Structure
 
-- `model.py`: This file contains the main logic for processing images using the OpenAI API.
-- `main.py`: This file sets up a Flask web application that exposes an API endpoint for processing images.
+- `model.py`: This file contains the main logic for processing PDFs using the OpenAI API.
+- `main.py`: This file sets up a Flask web application that exposes an API endpoint for processing PDFs.
 - `.env`: This file stores environment variables such as the OpenAI API key.
 
 ## Installation
@@ -20,8 +20,8 @@ This project consists of two primary files: `model.py` and `main.py`. The goal o
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/image-processor-project.git
-cd image-processor-project
+git clone https://github.com/yourusername/pdf-processor-project.git
+cd pdf-processor-project
 ```
 
 ### Install Dependencies
@@ -42,16 +42,16 @@ OPENAI_API_KEY=your_openai_api_key
 
 ### Running the Model Script
 
-To run the model script directly and process an image:
+To run the model script directly and process a PDF:
 
-1. Update the `image_path` variable in `model.py` with the path to your image.
+1. Update the `pdf_path` variable in `model.py` with the path to your PDF.
 2. Run the script:
 
 ```bash
 python model.py
 ```
 
-This will generate a JSON file `main_image.json` containing the structured output.
+This will generate a JSON file `main_pdf.json` containing the structured output.
 
 ### Running the Flask App
 
@@ -65,17 +65,17 @@ This will start the Flask server, which will be accessible at `http://127.0.0.1:
 
 ## API Endpoint
 
-### Endpoint: `/process_image`
+### Endpoint: `/process_pdf`
 
 - **Method**: POST
-- **Description**: Processes an image of an instruction manual and returns the structured JSON output.
+- **Description**: Processes a PDF of an instruction manual and returns the structured JSON output.
 - **Content-Type**: application/json
 
 #### Request Body
 
 ```json
 {
-    "file_path": "path_to_your_image"
+    "file_path": "path_to_your_pdf"
 }
 ```
 
@@ -147,9 +147,9 @@ This will start the Flask server, which will be accessible at `http://127.0.0.1:
 ## Example Usage with Curl
 
 ```bash
-curl -X POST http://127.0.0.1:5000/process_image \
+curl -X POST http://127.0.0.1:5000/process_pdf \
     -H "Content-Type: application/json" \
-    -d '{"file_path": "path_to_your_image"}'
+    -d '{"file_path": "path_to_your_pdf"}'
 ```
 
 ## License
