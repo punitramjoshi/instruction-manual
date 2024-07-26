@@ -1,0 +1,5 @@
+pdf2svg
+flask
+openai
+python-dotenv
+pymupdf
