@@ -5,6 +5,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import ast
 import fitz
+import requests
+from urllib.parse import urlparse
 
 load_dotenv()
 
@@ -15,49 +17,49 @@ class ImageProcessor:
         self.client = OpenAI(api_key=api_key or os.environ.get("OPENAI_API_KEY"))
         self.json_schema = """
 {
-  "components": {
-    "parts": [
-      {
-        "[Number given in the drawing]": {
-          "name": "<part_name>",
-          "quantity": <quantity_number>,
-          "description": "<description_description>",
-          "type": "part"
+    "components": {
+        "parts": [
+            {
+                "[Number given in the drawing]": {
+                    "name": "<part_name>",
+                    "quantity": <quantity_number>,
+                    "description": "<description_description>",
+                    "type": "part"
+                }
+            },
+            ...
+        ],
+        "hardware": [
+            {
+                "[Number given in the drawing]": {
+                    "name": "<hardware_name>",
+                    "specs": "<specifications>",
+                    "quantity": <quantity_number>,
+                    "description": "<description_description>",
+                    "type": "hardware"
+                }
+            },
+            ...
+        ],
+        "tools": [
+            {
+                "[Number given in the drawing]": {
+                    "name": "<tool_name>",
+                    "quantity": <quantity_number>,
+                    "description": "<description_description>",
+                    "type": "tool"
+                }
+            },
+            ...
+        ]
+    },
+    "assembly_instructions": [
+        {
+            "step": <step_number>,  // As given in the drawing.
+            "instructions": "<detailed_instructions>"
         }
-      },
-    ...
     ],
-    "hardware": [
-      {
-        "[Number given in the drawing]": {
-          "name": "<hardware_name>",
-          "specs": "<specifications>",
-          "quantity": <quantity_number>,
-          "description": "<description_description>",
-          "type": "hardware"
-        }
-      },
-    ...
-    ],
-    "tools": [
-      {
-        "[Number given in the drawing]": {
-          "name": "<tool_name>",
-          "quantity": <quantity_number>,
-          "description": "<description_description>",
-          "type": "tool"
-        }
-      },
-    ...
-    ]
-  },
-  "assembly_instructions": [
-    {
-      "step": <step_number>,  // As given in the drawing.
-      "instructions": "<detailed_instructions>"
-    }
-  ],
-  "final_product": "<final_product_description>"
+    "final_product": "<final_product_description>"
 }
 """
 
@@ -69,8 +71,10 @@ class ImageProcessor:
         :param pdf_path: Path to the PDF file.
         :param output_path: Path to save the PNG image.
         """
+        response = requests.get(pdf_path)
+        print(response.content)
         # Open the PDF file
-        pdf_document = fitz.open(pdf_path)
+        pdf_document = fitz.open(stream=response.content, filetype="pdf")
         
         # Check if the PDF is empty
         if pdf_document.page_count < 1:
