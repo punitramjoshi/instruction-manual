@@ -144,7 +144,6 @@ The JSON schema is as follows:
         return response.choices[0].message.content
 
     def processing(self, file_path) -> dict:
-        image_path = "image.png"
         self.pdf_to_png(pdf_path=file_path, output_path=image_path)
         print(f"Processing {image_path}")
         result = self.process_image(image_path)
@@ -152,10 +151,3 @@ The JSON schema is as follows:
         print(result_dict)
         # os.remove(image_path)
         return result_dict
-
-if __name__ == "__main__":
-    image_path = "K:\Punitram\instruction_manual\main_image.jpg"
-    processor = ImageProcessor()
-    result_dict = processor.processing(image_path=image_path)
-    with open("main_image.json", "w") as json_file:
-        json.dump(result_dict, json_file, indent=4)
