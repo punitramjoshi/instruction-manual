@@ -3,3 +3,4 @@ flask
 openai
 python-dotenv
 pymupdf
+docx2pdf

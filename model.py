@@ -1,12 +1,14 @@
 import base64
 import os
-import json
 from openai import OpenAI
 from dotenv import load_dotenv
 import ast
 import fitz
 import requests
 from urllib.parse import urlparse
+from io import BytesIO
+from PIL import Image
+from docx2pdf import convert
 
 load_dotenv()
 
@@ -63,41 +65,46 @@ class ImageProcessor:
 }
 """
 
+    def pdf_to_base64_images(self, pdf_path):
+        parsed_path = urlparse(pdf_path)
+        if parsed_path.scheme in ("http", "https", "ftp", "ftps"):
+            response = requests.get(pdf_path)
+            pdf_document = fitz.open(stream=response.content, filetype="pdf")
+        else:
+            pdf_document = fitz.open(pdf_path)
+        
+        base64_images = []
 
-    def pdf_to_png(self, pdf_path, output_path):
-        """
-        Convert a single-paged PDF to a PNG image.
+        for page_num in range(len(pdf_document)):
+            # Get the page
+            page = pdf_document.load_page(page_num)
+            # Convert the page to a Pixmap (image)
+            pix = page.get_pixmap()
+            
+            # Convert the Pixmap to a PIL Image
+            image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            
+            # Save the image to a bytes buffer
+            buffered = BytesIO()
+            image.save(buffered, format="PNG")
+            
+            # Encode the image to base64
+            img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            
+            # Append to the list
+            base64_images.append(img_str)
         
-        :param pdf_path: Path to the PDF file.
-        :param output_path: Path to save the PNG image.
-        """
-        response = requests.get(pdf_path)
-        print(response.content)
-        # Open the PDF file
-        pdf_document = fitz.open(stream=response.content, filetype="pdf")
-        
-        # Check if the PDF is empty
-        if pdf_document.page_count < 1:
-            raise ValueError("The PDF file is empty.")
-        
-        # Get the first page
-        page = pdf_document.load_page(0)
-        
-        # Define the zoom matrix
-        matrix = fitz.Matrix(2, 2)
-        
-        # Render the page to an image
-        pix = page.get_pixmap(matrix=matrix)
-        
-        # Save the image as a PNG file
-        pix.save(output_path)
+        return base64_images
 
-    def encode_image(self, image_path):
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
+    def process_images(self, base64_images: list[bytes]):
+        images = [
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/png;base64,{base64_image}"},
+            }
+            for base64_image in base64_images
+        ]
 
-    def process_image(self, image_path:str):
-        base64_image = self.encode_image(image_path)
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -128,12 +135,7 @@ The JSON schema is as follows:
                             "type": "text",
                             "text": "The image of the instruction manual.",
                         },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{base64_image}"
-                            },
-                        },
+                        *images,
                     ],
                 },
             ],
@@ -144,11 +146,15 @@ The JSON schema is as follows:
         return response.choices[0].message.content
 
     def processing(self, file_path) -> dict:
-        image_path = "image.png"
-        self.pdf_to_png(pdf_path=file_path, output_path=image_path)
+        if ".docx" in file_path or ".doc" in file_path:
+            pdf_path = "pdf_file.pdf"
+            convert(input_path=file_path, output_path=pdf_path)
+        elif ".pdf" in file_path:
+            pdf_path = file_path
+        print(pdf_path)
+        base64_images = self.pdf_to_base64_images(pdf_path=pdf_path)
         print(f"Processing...")
-        result = self.process_image(image_path)
-        result_dict:dict = ast.literal_eval(result)
+        result = self.process_images(base64_images)
+        result_dict: dict = ast.literal_eval(result)
         print(result_dict)
-        # os.remove(image_path)
         return result_dict

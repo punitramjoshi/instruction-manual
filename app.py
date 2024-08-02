@@ -6,7 +6,7 @@ from model import ImageProcessor
 
 st.title("Instruction Manual Generator")
 
-uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf", "docx"])
 
 if uploaded_file is not None:
     file_path = f"temp_{uploaded_file.name}"
