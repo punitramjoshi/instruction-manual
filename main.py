@@ -1,3 +1,5 @@
+# main.py
+
 from flask import Flask, request, jsonify
 from model import ImageProcessor
 
@@ -9,6 +11,9 @@ def process_pdf():
     data = request.get_json()
     if not data or "file_path" not in data:
         return jsonify({"error": "No file path provided"}), 400
+    
+    if not isinstance(data.get("file_path"), str) or not data.get("file_path"):
+        return jsonify({"error": "Invalid file path provided"}), 400
 
     file_path = data["file_path"]
 

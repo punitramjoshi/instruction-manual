@@ -1,7 +1,7 @@
+# app.py
+
 import streamlit as st
 import os
-import json
-import ast
 from model import ImageProcessor
 
 st.title("Instruction Manual Generator")
@@ -20,4 +20,5 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"An error occurred: {e}")
     finally:
-        os.remove(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)

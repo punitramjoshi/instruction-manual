@@ -1,8 +1,12 @@
-import base64
+# model.py
+
 import os
+import tempfile
+import json
+import logging
+import base64
 from openai import OpenAI
 from dotenv import load_dotenv
-import ast
 import fitz
 import requests
 from urllib.parse import urlparse
@@ -10,8 +14,7 @@ from io import BytesIO
 from PIL import Image
 from docx2pdf import convert
 
-load_dotenv()
-
+load_dotenv(override=True)
 
 class ImageProcessor:
     def __init__(self, model="gpt-4o", api_key=None):
@@ -146,15 +149,42 @@ The JSON schema is as follows:
         return response.choices[0].message.content
 
     def processing(self, file_path) -> dict:
-        if ".docx" in file_path or ".doc" in file_path:
-            pdf_path = "pdf_file.pdf"
-            convert(input_path=file_path, output_path=pdf_path)
-        elif ".pdf" in file_path:
+        file_path = os.path.abspath(file_path)  # Ensure a safe path
+        # Use case-insensitive file extension checking
+        if file_path.lower().endswith((".docx", ".doc")):
+            # Create a temporary file for the PDF conversion
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_pdf:
+                pdf_path = tmp_pdf.name
+            try:
+                convert(input_path=file_path, output_path=pdf_path)
+            except Exception as e:
+                logging.error(f"Error converting DOCX to PDF: {e}")
+                raise
+        elif file_path.lower().endswith(".pdf"):
             pdf_path = file_path
-        print(pdf_path)
-        base64_images = self.pdf_to_base64_images(pdf_path=pdf_path)
-        print(f"Processing...")
-        result = self.process_images(base64_images)
-        result_dict: dict = ast.literal_eval(result)
-        print(result_dict)
+        else:
+            raise ValueError("Unsupported file type. Please upload a PDF or DOCX file.")
+        
+        logging.info(f"Processing PDF: {pdf_path}")
+        try:
+            base64_images = self.pdf_to_base64_images(pdf_path=pdf_path)
+            logging.info("Converted PDF pages to base64 images.")
+            result = self.process_images(base64_images)
+            try:
+                result_dict = json.loads(result)
+            except json.JSONDecodeError as e:
+                logging.error(f"Error decoding JSON response: {e}")
+                raise ValueError("The model did not return valid JSON.")
+        finally:
+            # Clean up the temporary PDF if one was created
+            if file_path.lower().endswith((".docx", ".doc")) and os.path.exists(pdf_path):
+                os.remove(pdf_path)
+                logging.info("Temporary PDF file removed.")
+        
+        logging.info(f"Result: {result_dict}")
         return result_dict
+    
+if __name__ == "__main__":
+    processor = ImageProcessor()
+    result_dict = processor.processing(file_path="./Instruction Manual.pdf")
+    print(result_dict)

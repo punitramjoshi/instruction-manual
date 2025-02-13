@@ -1,166 +1,114 @@
-# PDF Processor Project
+# Instruction Manual Generator
 
 ## Overview
+This project is an **AI-powered Instruction Manual Generator** that extracts assembly instructions from **PDF** or **DOCX** files containing part drawings and step-by-step guides. It leverages **OpenAI's GPT-4o model** to analyze images of these drawings and generate a structured instruction manual in JSON format.
 
-This project consists of two primary files: `model.py` and `main.py`. The goal of the project is to process PDF files of assembly instruction manuals and convert them into a structured JSON format using the OpenAI API. The project includes a Flask web application that provides an API endpoint to process these PDFs.
+## Tech Stack
+- **Python** (Backend)
+- **Flask** (API Endpoint)
+- **Streamlit** (User Interface)
+- **OpenAI API** (GPT-4o for image processing & text generation)
+- **PyMuPDF (fitz)** (PDF handling)
+- **Pillow (PIL)** (Image processing)
+- **Docx2pdf** (DOCX to PDF conversion)
 
-## Project Structure
+---
 
-- `model.py`: This file contains the main logic for processing PDFs using the OpenAI API.
-- `main.py`: This file sets up a Flask web application that exposes an API endpoint for processing PDFs.
-- `.env`: This file stores environment variables such as the OpenAI API key.
+## Architecture
 
-## Installation
+### Components:
+1. **Model (`model.py`)**  
+   - Converts **PDF pages** into **Base64 images**
+   - Sends images to **OpenAI API** for processing
+   - Generates structured **JSON output** for the instruction manual
 
-### Prerequisites
+2. **Backend (`main.py`)**  
+   - **Flask API** endpoint (`/process_pdf`) to accept file paths
+   - Calls the **model processor** and returns JSON response
 
-- Python 3.8 or later
-- pip (Python package installer)
+3. **Frontend (`app.py`)**  
+   - **Streamlit UI** for file uploads
+   - Displays the generated instruction manual in a readable format
 
-### Clone the Repository
+---
 
-```bash
-git clone https://github.com/yourusername/pdf-processor-project.git
-cd pdf-processor-project
-```
+## Workflow
 
-### Install Dependencies
+1. **File Upload & Preprocessing:**
+   - User uploads a **PDF** or **DOCX** file.
+   - If DOCX, it is converted to **PDF**.
 
+2. **Image Extraction & Processing:**
+   - PDF pages are converted into **Base64 images**.
+   - Images are sent to **OpenAI's GPT-4o**.
+
+3. **AI Analysis & JSON Generation:**
+   - The model extracts **Parts, Hardware, and Tools** with their numbers and descriptions.
+   - Step-by-step **Assembly Instructions** are extracted.
+   - A **Final Product Description** is generated.
+
+4. **Results Display & API Response:**
+   - The Streamlit UI displays **formatted JSON output**.
+   - The Flask API returns the result as a **JSON response**.
+
+---
+
+## Execution Guide
+
+### 1. Install Dependencies
+Ensure you have Python **3.8+** installed, then run:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Set Up Environment Variables
-
-Create a `.env` file in the project root directory and add your OpenAI API key:
-
-```
-OPENAI_API_KEY=your_openai_api_key
+### 2. Set Up OpenAI API Key
+Create a **.env** file in the project root and add:
+```env
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-## Usage
-
-### Running the Model Script
-
-To run the model script directly and process a PDF:
-
-1. Update the `pdf_path` variable in `model.py` with the path to your PDF.
-2. Run the script:
-
-```bash
-python model.py
-```
-
-This will generate a JSON file `main_pdf.json` containing the structured output.
-
-### Running the Flask App
-
-To run the Flask web application:
-
+### 3. Run the Flask API
+Start the backend server:
 ```bash
 python main.py
 ```
 
-This will start the Flask server, which will be accessible at `http://127.0.0.1:5000`.
-
-## API Endpoint
-
-### Endpoint: `/process_pdf`
-
-- **Method**: POST
-- **Description**: Processes a PDF of an instruction manual and returns the structured JSON output.
-- **Content-Type**: application/json
-
-#### Request Body
-
-```json
-{
-    "file_path": "path_to_your_pdf"
-}
-```
-
-#### Response
-
-- **Success (200)**
-
-```json
-{
-    "components": {
-        "parts": [
-            {
-                "[Number given in the drawing]": {
-                    "name": "<part_name>",
-                    "quantity": <quantity_number>,
-                    "description": "<description_description>",
-                    "type": "part"
-                }
-            }
-        ],
-        "hardware": [
-            {
-                "[Number given in the drawing]": {
-                    "name": "<hardware_name>",
-                    "specs": "<specifications>",
-                    "quantity": <quantity_number>,
-                    "description": "<description_description>",
-                    "type": "hardware"
-                }
-            }
-        ],
-        "tools": [
-            {
-                "[Number given in the drawing]": {
-                    "name": "<tool_name>",
-                    "quantity": <quantity_number>,
-                    "description": "<description_description>",
-                    "type": "tool"
-                }
-            }
-        ]
-    },
-    "assembly_instructions": [
-        {
-            "step": <step_number>,
-            "instructions": "<detailed_instructions>"
-        }
-    ],
-    "final_product": "<final_product_description>"
-}
-```
-
-- **Error (400)**
-
-```json
-{
-    "error": "No file path provided"
-}
-```
-
-- **Error (500)**
-
-```json
-{
-    "error": "Detailed error message"
-}
-```
-
-## Example Usage with Curl
-
+### 4. Run the Streamlit App
+Launch the UI:
 ```bash
-curl -X POST http://127.0.0.1:5000/process_pdf \
-    -H "Content-Type: application/json" \
-    -d '{"file_path": "path_to_your_pdf"}'
+streamlit run app.py
 ```
 
-## License
+---
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+## API Usage
+### Endpoint: `/process_pdf`
+- **Method:** `POST`
+- **Request Body:**
+  ```json
+  {
+      "file_path": "path_to_your_pdf_or_docx"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+      "components": { ... },
+      "assembly_instructions": [ ... ],
+      "final_product": "..."
+  }
+  ```
 
-## Contributing
+---
 
-Contributions are welcome! Please open an issue or submit a pull request for any changes.
+## Future Improvements
+- **Optimize OpenAI API Calls** to reduce latency.
+- **Improve UI** with better visualization of generated instructions.
+- **Allow direct file uploads via Flask API** instead of passing file paths.
+- **Add multi-language support** for instruction generation.
 
-## Acknowledgements
+---
 
-- OpenAI for providing the API used in this project.
-- Flask for the web framework.
+## Author & License
+- **Author:** Punitram Joshi
+- **License:** MIT License
