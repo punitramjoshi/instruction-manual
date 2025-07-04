@@ -4,14 +4,6 @@
 This project is an **AI-powered Instruction Manual Generator** that extracts assembly instructions from **PDF** or **DOCX** files containing part drawings and step-by-step guides. It leverages **OpenAI's GPT-4o model** to analyze images of these drawings and generate a structured instruction manual in JSON format.
 
 ## Tech Stack
-- **Python** (Backend)
-- **Flask** (API Endpoint)
-- **Streamlit** (User Interface)
-- **OpenAI API** (GPT-4o for image processing & text generation)
-- **PyMuPDF (fitz)** (PDF handling)
-- **Pillow (PIL)** (Image processing)
-- **Docx2pdf** (DOCX to PDF conversion)
-
 ---
 
 ## Architecture
