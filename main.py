@@ -1,27 +1,32 @@
 # main.py
 
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from model import ImageProcessor
 
-app = Flask(__name__)
+# Keep Flask-style `jsonify` for experiment
+from flask import jsonify, request
+
+app = FastAPI()
 processor = ImageProcessor()
 
-@app.route("/process_pdf", methods=["POST"])
-def process_pdf():
-    data = request.get_json()
+@app.post("/process_pdf")
+async def process_pdf(request: Request):
+    # Still using Flask-style request.get_json()
+    data = await request.json()
+
     if not data or "file_path" not in data:
-        return jsonify({"error": "No file path provided"}), 400
-    
+        return JSONResponse(content=jsonify({"error": "No file path provided"}).json, status_code=400)
+
     if not isinstance(data.get("file_path"), str) or not data.get("file_path"):
-        return jsonify({"error": "Invalid file path provided"}), 400
+        return JSONResponse(content=jsonify({"error": "Invalid file path provided"}).json, status_code=400)
 
     file_path = data["file_path"]
 
     try:
         result_dict = processor.processing(file_path=file_path)
-        return jsonify(result_dict)
+        return JSONResponse(content=jsonify(result_dict).json)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return JSONResponse(content=jsonify({"error": str(e)}).json, status_code=500)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Note: No need for `if __name__ == "__main__"` in FastAPI apps; use `uvicorn` to run
